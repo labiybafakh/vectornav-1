@@ -81,7 +81,7 @@ add_executable(vn200_node     src/vn200_node.cpp
                               vnccpplib/src/arch/linux/vncp_services.c
                               vnccpplib/src/vn200.c)
 
-add_executable(vn100_node src/vn100_node.cpp vnccpplib/src/arch/linux/vncp_services.c vnccpplib/src/vn100.c)
+add_executable(vn100_node_test src/vn100_node.cpp vnccpplib/src/arch/linux/vncp_services.c vnccpplib/src/vn100.c)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -98,7 +98,7 @@ add_executable(vn100_node src/vn100_node.cpp vnccpplib/src/arch/linux/vncp_servi
    vn200
  )
 
- target_link_libraries(vn100_node
+ target_link_libraries(vn100_node_test
      ${catkin_LIBRARIES}
      vncp_services
      vn100)
@@ -118,7 +118,7 @@ install(PROGRAMS
 )
 
 ## Mark executables and/or libraries for installation
- install(TARGETS vn200_node
+ install(TARGETS vn200_node vn100_node_test
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
