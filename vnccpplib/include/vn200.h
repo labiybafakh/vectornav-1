@@ -566,6 +566,16 @@ DLL_EXPORT VN_ERROR_CODE vn200_getGpsSolution(Vn200* vn200, double* gpsTime, uns
  */
 DLL_EXPORT VN_ERROR_CODE vn200_getInsSolution(Vn200* vn200, double* gpsTime, unsigned short* gpsWeek, unsigned short* status, VnVector3* ypr, VnVector3* lattitudeLongitudeAltitude, VnVector3* nedVelocity, float* attitudeUncertainty, float* positionUncertainty, float* velocityUncertainty);
 
+/**
+ * \brief Gets the values in the INS Solution register.
+ *
+ * \param[in] vn200 Pointer to the Vn200 control object.
+ * \param[out] ypr The current sensor heading, pitch, and roll values.
+ * \param[out] bodyAcc The current true body linear acceleration (X,Y,Z) values (compensated).
+ * \param[out] gyro The current true body angular rate (X,Y,Z) values (compensated).
+ * \return VectorNav error code.
+ */
+DLL_EXPORT VN_ERROR_CODE vn200_getYPRTrueBody(Vn200* vn200, VnVector3* ypr, VnVector3* bodyAcc, VnVector3* gyro);
 
 #ifdef __cplusplus
 }

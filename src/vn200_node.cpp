@@ -31,21 +31,23 @@
 
 #include "vectornav.h"
 
-#include <ros/ros.h>
-#include <tf/tf.h>
+#include "ros/ros.h"
+#include "tf/tf.h"
 
 // Message Types
 #include <vectornav/gps.h>
 #include <vectornav/ins.h>
 #include <vectornav/sensors.h>
+#include <vectornav/trueBody.h>
 
 // Params
-std::string imu_frame_id, gps_frame_id;
+std::string imu_frame_id, gps_frame_id, trueBody_frame_id;
 
 // Publishers
 ros::Publisher pub_ins;
 ros::Publisher pub_gps;
 ros::Publisher pub_sensors;
+ros::Publisher pub_trueBody;
 
 // Device
 Vn200 vn200;
@@ -247,7 +249,8 @@ void poll_device()
     // Only bother if we have subscribers
     if (pub_ins.getNumSubscribers()     <= 0 &&
         pub_gps.getNumSubscribers()     <= 0 &&
-        pub_sensors.getNumSubscribers() <= 0)
+        pub_sensors.getNumSubscribers() <= 0 &&
+        pub_trueBody.getNumSubscribers()<= 0)
     {
       return;
     }
@@ -393,6 +396,37 @@ void poll_device()
       pub_sensors.publish(msg_sensors);
       
     }
+
+    //True Body Data
+    if(pub_trueBody.getNumSubscribers() > 0)
+    {
+      VnVector3 ypr, acceleration, angularRate;
+
+      vn200_getYPRTrueBody(  &vn200,
+                             &ypr,
+                             &acceleration,
+                             &angularRate);
+
+      vectornav::trueBody msg_trueBody;
+      msg_trueBody.header.seq      = seq;
+      msg_trueBody.header.stamp    = timestamp;
+      msg_trueBody.header.frame_id = trueBody_frame_id;
+
+      msg_trueBody.RPY.x = ypr.c2;
+      msg_trueBody.RPY.y = ypr.c1;
+      msg_trueBody.RPY.z = ypr.c0;
+
+      msg_trueBody.bodyAcc.x = acceleration.c0;
+      msg_trueBody.bodyAcc.y = acceleration.c1;
+      msg_trueBody.bodyAcc.z = acceleration.c2;
+
+      msg_trueBody.gyro.x = angularRate.c0;
+      msg_trueBody.gyro.y = angularRate.c1;
+      msg_trueBody.gyro.z = angularRate.c2;
+
+
+      pub_trueBody.publish(msg_trueBody);
+    }
 }
 
 void poll_timerCB(const ros::TimerEvent&)
@@ -449,15 +483,17 @@ int main( int argc, char* argv[] )
   
   n_.param<std::string>("imu/frame_id", imu_frame_id, "LLA");
   n_.param<std::string>("gps/frame_id", gps_frame_id, "LLA");
+  n_.param<std::string>("trueBody/frame_id", trueBody_frame_id, "trueBody");
    
   // Type: 0 None, 19 IMU, 20 GPS, 22 INS
   n_.param<int>(        "async_output_type"  , async_output_type, 0);
   n_.param<int>(        "async_output_rate"  , async_output_rate, 50); 
   
   // Initialize Publishers
-  pub_ins     = n_.advertise<vectornav::ins>    ("ins", 1000);
-  pub_gps     = n_.advertise<vectornav::gps>    ("gps", 1000);
-  pub_sensors = n_.advertise<vectornav::sensors>("imu", 1000);
+  pub_ins     = n_.advertise<vectornav::ins>      ("ins", 1000);
+  pub_gps     = n_.advertise<vectornav::gps>      ("gps", 1000);
+  pub_sensors = n_.advertise<vectornav::sensors>  ("imu", 1000);
+  pub_trueBody= n_.advertise<vectornav::trueBody> ("trueBody", 1000);
   
   // Initialize VectorNav
   VN_ERROR_CODE vn_retval;

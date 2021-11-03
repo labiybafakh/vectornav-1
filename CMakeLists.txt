@@ -4,7 +4,10 @@ project(vectornav)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED tf)
+find_package(catkin REQUIRED COMPONENTS 
+    roscpp 
+    message_generation 
+    tf)
 
 ## System dependencies are found with CMake's conventions
 #find_package(Boost REQUIRED COMPONENTS system)
@@ -25,6 +28,7 @@ find_package(catkin REQUIRED tf)
    ins.msg
    gps.msg
    sensors.msg
+   trueBody.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -63,7 +67,9 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories( vnccpplib/include )
+include_directories( 
+  ${catkin_INCLUDE_DIRS}
+  vnccpplib/include )
 
 ## Declare a cpp library
 add_library(vn100

@@ -901,6 +901,47 @@ void vn200_processAsyncData(Vn200* vn200, char* buffer)
 			return;
 		data.velocityUncertainty = (float) atof(result);
 	}
+	else if (strncmp(buffer, "VNYBA", 5) == 0) { /* New Code True Body */
+
+		result = strtok(buffer, delims);	/* Returns async header. */
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.ypr.yaw = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.ypr.pitch = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.ypr.roll = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.acceleration.c0 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.acceleration.c1  = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.acceleration.c2  = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.angularRate.c0 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.angularRate.c1 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.angularRate.c2 = atof(result);
+		
+	}
 	/* VN_CODE_GENERATION_SPOT_1_END */
 
 	else {
@@ -1978,5 +2019,70 @@ VN_ERROR_CODE vn200_getInsSolution(Vn200* vn200, double* gpsTime, unsigned short
 	return VNERR_NO_ERROR;
 }
 
+/*
+	New Code for YPR , True Body Acc and Angular Rate (compensated) *
+*/
+
+VN_ERROR_CODE vn200_getYPRTrueBody(Vn200* vn200, VnVector3* ypr, VnVector3* bodyAcc, VnVector3* gyro)
+{
+	const char* cmdToSend = "$VNRRG,239";
+	char delims[] = ",*";
+	char* result;
+	Vn200Internal* vn200Int;
+	int errorCode;
+	const char* responseMatch = "VNRRG,";
+
+	if (!vn200->isConnected)
+		return VNERR_NOT_CONNECTED;
+
+	vn200Int = vn200_getInternalData(vn200);
+
+	errorCode = vn200_transaction(vn200, cmdToSend, responseMatch);
+
+	if (errorCode != VNERR_NO_ERROR)
+		return errorCode;
+
+	result = strtok(vn200Int->cmdResponseBuffer, delims);  /* Returns VNRRG */
+	result = strtok(0, delims);                            /* Returns register ID */
+	result = strtok(0, delims);
+
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	ypr->c0 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	ypr->c1 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	ypr->c2 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	bodyAcc->c0 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	bodyAcc->c1 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	bodyAcc->c2 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	gyro->c0 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	gyro->c1 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	gyro->c2 = atof(result);
+
+	return VNERR_NO_ERROR;
+}
 
 /** \endcond */
