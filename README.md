@@ -5,7 +5,7 @@ A ROS node for VectorNav INS & GPS devices.
 
 This package is still under development but currently is able to 
 connect to a [VN-200][2] and poll each of the three data packets:
-{gps, ins, sensors} and publish the data as ROS topics. 
+{gps, ins, sensors, true body(RPY, Acceleration, Angular)} and publish the data as ROS topics. 
 
 
 
@@ -127,6 +127,7 @@ of data packets which can be accessed:
 1. INS - Basic sensor fusion between GPS and IMU.
 2. GPS - Raw GPS data
 3. Sensors - _Calibrated_ Sensor data
+4. True Body - Calibrated Sensor data and Compensated Body True Acceleration & Angular Rates 
 
 ### Device Ports
 The VN-200 has two serial ports on the device. The development kit ships with
