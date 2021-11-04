@@ -29,6 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
    gps.msg
    sensors.msg
    trueBody.msg
+   dThetaVel.msg
  )
 
 ## Generate services in the 'srv' folder

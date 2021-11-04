@@ -466,7 +466,6 @@ void vn200_processReceivedPacket(Vn200* vn200, char* buffer)
 		if (strncmp(responseMatch, buffer, strlen(responseMatch)) == 0) {
 
 			/* We found a command response match! */
-
 			/* If everything checks out on this command packet, let's disable
 			 * further response checking. */
 			vn200_disableResponseChecking_threadSafe(vn200);
@@ -941,6 +940,39 @@ void vn200_processAsyncData(Vn200* vn200, char* buffer)
 			return;
 		data.angularRate.c2 = atof(result);
 		
+	}
+
+	else if (strncmp(buffer, "VNDTV", 5) == 0) { /* New Code True Body */
+
+		result = strtok(buffer, delims);	/* Returns async header. */
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaTime = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaRotation.c0 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaRotation.c1 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaRotation.c2 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaVelocity.c0 = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaVelocity.c1  = atof(result);
+		result = strtok(0, delims);
+		if (result == NULL)
+			return;
+		data.deltaVelocity.c2 = atof(result);
 	}
 	/* VN_CODE_GENERATION_SPOT_1_END */
 
@@ -2081,6 +2113,64 @@ VN_ERROR_CODE vn200_getYPRTrueBody(Vn200* vn200, VnVector3* ypr, VnVector3* body
 	if (result == NULL)
 		return VNERR_INVALID_VALUE;
 	gyro->c2 = atof(result);
+
+	return VNERR_NO_ERROR;
+}
+
+
+/*
+	New Code for delta theta and velocity XYZ *
+*/
+
+VN_ERROR_CODE vn200_getdThetaVel(Vn200* vn200, float* dt, VnVector3* dTheta, VnVector3* dVel)
+{
+	const char* cmdToSend = "$VNRRG,80";
+	char delims[] = ",*";
+	char* result;
+	Vn200Internal* vn200Int;
+	int errorCode;
+	const char* responseMatch = "VNRRG,";
+
+	if (!vn200->isConnected)
+		return VNERR_NOT_CONNECTED;
+
+	vn200Int = vn200_getInternalData(vn200);
+
+	errorCode = vn200_transaction(vn200, cmdToSend, responseMatch);
+
+	if (errorCode != VNERR_NO_ERROR)
+		return errorCode;
+
+	result = strtok(vn200Int->cmdResponseBuffer, delims);  /* Returns VNRRG */
+	result = strtok(0, delims);                            /* Returns register ID */
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	*dt = (float) atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	dTheta->c0 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	dTheta->c1 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	dTheta->c2 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	dVel->c0 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	dVel->c1 = atof(result);
+	result = strtok(0, delims);
+	if (result == NULL)
+		return VNERR_INVALID_VALUE;
+	dVel->c2 = atof(result);
 
 	return VNERR_NO_ERROR;
 }

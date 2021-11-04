@@ -39,6 +39,8 @@
 #include <vectornav/ins.h>
 #include <vectornav/sensors.h>
 #include <vectornav/trueBody.h>
+#include <vectornav/dThetaVel.h>
+
 
 // Params
 std::string imu_frame_id, gps_frame_id, trueBody_frame_id;
@@ -48,6 +50,7 @@ ros::Publisher pub_ins;
 ros::Publisher pub_gps;
 ros::Publisher pub_sensors;
 ros::Publisher pub_trueBody;
+ros::Publisher pub_dThetaVel;
 
 // Device
 Vn200 vn200;
@@ -250,7 +253,8 @@ void poll_device()
     if (pub_ins.getNumSubscribers()     <= 0 &&
         pub_gps.getNumSubscribers()     <= 0 &&
         pub_sensors.getNumSubscribers() <= 0 &&
-        pub_trueBody.getNumSubscribers()<= 0)
+        pub_trueBody.getNumSubscribers()<= 0 &&
+        pub_dThetaVel.getNumSubscribers()<=0)
     {
       return;
     }
@@ -258,6 +262,7 @@ void poll_device()
     static int seq = 0;
     seq++;
     ros::Time timestamp =  ros::Time::now(); 
+    
     
     // INS & GPS Shared Data
     double gpsTime;
@@ -397,7 +402,7 @@ void poll_device()
       
     }
 
-    //True Body Data
+    //True Body Data (New)
     if(pub_trueBody.getNumSubscribers() > 0)
     {
       VnVector3 ypr, acceleration, angularRate;
@@ -426,6 +431,36 @@ void poll_device()
 
 
       pub_trueBody.publish(msg_trueBody);
+    }
+
+    //Delta Rotation and Velocity (New)
+    if(pub_dThetaVel.getNumSubscribers() > 0)
+    {
+      float dTime;
+      VnVector3 dTheta, dVel;
+
+      vn200_getdThetaVel( &vn200,
+                          &dTime,
+                          &dTheta,
+                          &dVel);
+
+      vectornav::dThetaVel msg_dThetaVel;
+      msg_dThetaVel.header.seq      = seq;
+      msg_dThetaVel.header.stamp    = timestamp;
+      msg_dThetaVel.header.frame_id = trueBody_frame_id;
+
+      msg_dThetaVel.deltaTime = dTime;
+
+      msg_dThetaVel.deltaTheta.x = dTheta.c0;
+      msg_dThetaVel.deltaTheta.y = dTheta.c1;
+      msg_dThetaVel.deltaTheta.z = dTheta.c0;
+
+      msg_dThetaVel.deltaVelocity.x = dVel.c0;
+      msg_dThetaVel.deltaVelocity.y = dVel.c1;
+      msg_dThetaVel.deltaVelocity.z = dVel.c2;
+
+
+      pub_dThetaVel.publish(msg_dThetaVel);
     }
 }
 
@@ -494,6 +529,8 @@ int main( int argc, char* argv[] )
   pub_gps     = n_.advertise<vectornav::gps>      ("gps", 1000);
   pub_sensors = n_.advertise<vectornav::sensors>  ("imu", 1000);
   pub_trueBody= n_.advertise<vectornav::trueBody> ("trueBody", 1000);
+  pub_dThetaVel= n_.advertise<vectornav::dThetaVel> ("dThetaVel", 1000);
+
   
   // Initialize VectorNav
   VN_ERROR_CODE vn_retval;

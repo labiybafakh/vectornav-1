@@ -93,6 +93,11 @@ typedef struct {
 	float			attitudeUncertainty;		/**< Uncertainty in attitude estimate. */
 	float			positionUncertainty;		/**< Uncertainty in position estimate. */
 	float			velocityUncertainty;		/**< Uncertainty in velocity estimate. */
+
+	// New variable
+	float			deltaTime;					/**< Delta time for the integration interval. */
+	VnVector3		deltaRotation;				/**< Delta rotation vector component in XYZ. */
+	VnVector3		deltaVelocity;				/**< Delta velocity vector component in XYZ. */
 } Vn200CompositeData;
 
 /**
@@ -576,6 +581,18 @@ DLL_EXPORT VN_ERROR_CODE vn200_getInsSolution(Vn200* vn200, double* gpsTime, uns
  * \return VectorNav error code.
  */
 DLL_EXPORT VN_ERROR_CODE vn200_getYPRTrueBody(Vn200* vn200, VnVector3* ypr, VnVector3* bodyAcc, VnVector3* gyro);
+
+/**
+ * \brief Gets the values in the INS Solution register.
+ *
+ * \param[in] vn200 Pointer to the Vn200 control object.
+ * \param[out] dt delta time for the integration interval.
+ * \param[out] dTheta delta rotation vector component in XYZ.
+ * \param[out] dVel delta velocity vector component in XYZ.
+ * \return VectorNav error code.
+ */
+DLL_EXPORT VN_ERROR_CODE vn200_getdThetaVel(Vn200* vn200, float* dt, VnVector3* dTheta, VnVector3* dVel);
+
 
 #ifdef __cplusplus
 }
